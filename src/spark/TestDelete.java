@@ -1,7 +1,6 @@
 package spark;
 
 import java.util.Arrays;
-
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -17,12 +16,9 @@ public class TestDelete {
 		JavaSparkContext javaSparkContext = new JavaSparkContext(sparkContext);
 		JavaRDD<String> javaRDD = javaSparkContext.parallelize(Arrays.asList("张三", "李四"));
 		JavaRDD<Row> map = javaRDD.map(row->RowFactory.create(row.split("")));
-		MyMethod mm = new MyMethod();
-		map.foreach(mm::print);
+		map.foreach(r->System.out.println(r));
 		javaSparkContext.close();
-
 	}
-
 }
 
 class MyMethod{
