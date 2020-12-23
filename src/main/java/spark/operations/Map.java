@@ -1,6 +1,6 @@
 package main.java.spark.operations;
 
-import org.apache.commons.lang3.StringUtils;
+import main.java.spark.Common;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 

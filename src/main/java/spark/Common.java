@@ -1,4 +1,4 @@
-package main.java.spark.operations;
+package main.java.spark;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -18,6 +18,6 @@ public class Common {
     }
 
     public static void println(Object obj) {
-        System.out.println(String.valueOf(obj));
+        System.out.println(obj);
     }
 }
