@@ -1,4 +1,4 @@
-package thread;
+package main.java.thread;
 
 /**
  * 请用两个线程交替输出A1B2C3D4...，A线程输出字母，B线程输出数字，要求A线程首先执行，B线程其次执行！

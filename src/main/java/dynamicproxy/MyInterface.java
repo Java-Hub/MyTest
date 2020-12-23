@@ -1,4 +1,4 @@
-package dynamicproxy;
+package main.java.dynamicproxy;
 
 public interface MyInterface {
 	

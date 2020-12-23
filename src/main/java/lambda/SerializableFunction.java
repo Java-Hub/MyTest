@@ -1,4 +1,4 @@
-package lambda;
+package main.java.lambda;
 
 import java.io.Serializable;
 

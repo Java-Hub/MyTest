@@ -1,4 +1,4 @@
-package spark;
+package main.java.spark;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

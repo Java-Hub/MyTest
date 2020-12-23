@@ -1,4 +1,4 @@
-package spark;
+package main.java.spark;
 
 import java.util.Arrays;
 import org.apache.spark.SparkContext;

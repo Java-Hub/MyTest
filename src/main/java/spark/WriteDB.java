@@ -1,4 +1,4 @@
-package spark;
+package main.java.spark;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
