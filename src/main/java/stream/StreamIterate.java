@@ -1,14 +1,14 @@
 package main.java.stream;
 
-import java.math.BigInteger;
-import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class StreamIterate {
 
-    public static void main(String[] args) {
-        Stream<BigInteger> stream = Stream.iterate(BigInteger.ZERO, bigInteger -> bigInteger.add(BigInteger.ONE));
-        stream.forEach(System.out::println);
-    }
+	public static void main(String[] args) {
+		Stream<String> stream = Stream.of("1", "2", "3", "4", "5");
+		String val = stream.collect(Collectors.joining("-"));
+		System.out.println(val);
+	}
 
 }
