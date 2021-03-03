@@ -3,6 +3,10 @@ package main.java.spark.structuredstreaming;
 import org.apache.spark.sql.streaming.StreamingQueryListener;
 import org.apache.spark.sql.streaming.StreamingQueryProgress;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 /**
  * Streaming监听器
  * @author caik
@@ -10,7 +14,7 @@ import org.apache.spark.sql.streaming.StreamingQueryProgress;
  */
 public class StreamingListener extends StreamingQueryListener {
 
-	private long size;
+	private Map<UUID, Long> map = new HashMap<>();
 
 	@Override
 	public void onQueryStarted(QueryStartedEvent event) {
@@ -21,10 +25,12 @@ public class StreamingListener extends StreamingQueryListener {
 	public void onQueryProgress(QueryProgressEvent event) {
 		StreamingQueryProgress progress = event.progress();
 		long rows = progress.numInputRows();
-		size += rows;
-		if(rows > 0){
-			System.out.println("本次数据量：" + rows);
-			System.out.println("累计数据量：" + size);
+		if (rows > 0) {
+			System.out.println(progress.name() + rows);
+			UUID uuid = progress.id();
+			long count = map.containsKey(uuid) ? map.get(uuid) + rows : rows;
+			map.put(uuid, count);
+			System.out.println("累计：" + count);
 		}
 	}
 
