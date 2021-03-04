@@ -1,17 +1,20 @@
 package main.java.spark.structuredstreaming.jdbc;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.spark.Partition;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.execution.datasources.jdbc.JDBCOptions;
+import org.apache.spark.sql.execution.datasources.jdbc.JDBCPartition;
 import org.apache.spark.sql.execution.datasources.jdbc.JDBCRDD;
+import org.apache.spark.sql.execution.datasources.jdbc.JdbcUtils;
 import org.apache.spark.sql.execution.streaming.Offset;
 import org.apache.spark.sql.execution.streaming.Source;
 import org.apache.spark.sql.sources.Filter;
-import org.apache.spark.sql.sources.GreaterThan;
-import org.apache.spark.sql.sources.LessThan;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
+import scala.Function0;
 import scala.Option;
 import scala.collection.Iterator;
 import scala.collection.immutable.HashMap;
@@ -34,9 +37,11 @@ public class JdbcDataSource implements Source {
 
 	private final StructType schema;
 
-	private Connection connection;
-
 	private String[] columns;
+
+	private Function0<Connection> getConnection;
+
+	private Connection connection;
 
 	public static final String NAME = "jdbc";
 
@@ -50,15 +55,9 @@ public class JdbcDataSource implements Source {
 	}
 
 	private void init() {
-		String url = jdbc.getUrl();
-		String user = jdbc.getUser();
-		String pwd = jdbc.getPwd();
-		try {
-			Class.forName(jdbc.getDriver());
-			this.connection = DriverManager.getConnection(url, user, pwd);
-		} catch (SQLException | ClassNotFoundException e) {
-			throw new RuntimeException(e);
-		}
+		JDBCOptions options = jdbc.asJDBCOptions();
+		getConnection = JdbcUtils.createConnectionFactory(options);
+		connection = getConnection.apply();
 		this.columns = new String[this.schema.length()];
 		Iterator<StructField> iterator = this.schema.iterator();
 		int i = 0;
@@ -77,8 +76,8 @@ public class JdbcDataSource implements Source {
 		String offsetField = jdbc.getTimestamp();
 		String sql = "select max(" + offsetField + ") from " + jdbc.getTable() + " T ";
 		try (Statement st = connection.createStatement(); ResultSet rs = st.executeQuery(sql)) {
-			if (rs.next()) {
-				Timestamp timestamp = rs.getTimestamp(1);
+			Timestamp timestamp;
+			if (rs.next() && (timestamp = rs.getTimestamp(1)) != null) {
 				LocalDateTime localDateTime = timestamp.toLocalDateTime();
 				String dateTime = FORMATTER.format(localDateTime);
 				return Option.apply(new JdbcStreamSourceOffset(dateTime));
@@ -91,12 +90,18 @@ public class JdbcDataSource implements Source {
 
 	@Override
 	public Dataset<Row> getBatch(Option<Offset> start, Offset end) {
-		String startTime = start.isEmpty() ? "''" : ((JdbcStreamSourceOffset) start.get()).getDateTime();
+		String startTime = start.isEmpty() ? "" : ((JdbcStreamSourceOffset) start.get()).getDateTime();
 		String endTime = ((JdbcStreamSourceOffset) end).getDateTime();
 		String offsetField = jdbc.getTimestamp();
-		Filter[] filters = new Filter[] { new LessThan(offsetField, funcToDateTime(startTime)), new GreaterThan(offsetField, funcToDateTime(endTime)) };
+		Filter[] filters = new Filter[0];
 		JDBCOptions options = new JDBCOptions(jdbc.getUrl(), jdbc.getTable(), new HashMap<>());
-		JDBCRDD jdbcrdd = new JDBCRDD(sc.sparkContext(), ()->connection, schema, columns, filters, null, jdbc.getUrl(), options);
+
+		String where = offsetField + ">" + funcToDateTime(startTime) + " and " + offsetField + "<=" + funcToDateTime(endTime);
+
+		JDBCPartition jdbcPartition = new JDBCPartition(where, 0);
+		Partition[] partitions = { jdbcPartition };
+
+		JDBCRDD jdbcrdd = new JDBCRDD(sc.sparkContext(), getConnection, schema, columns, filters, partitions, jdbc.getUrl(), options);
 		return sc.internalCreateDataFrame(jdbcrdd.setName(NAME), schema, true);
 	}
 
@@ -115,6 +120,7 @@ public class JdbcDataSource implements Source {
 	}
 
 	private String funcToDateTime(String value) {
-		return "to_timestamp('" + value + "','yyyy-MM-dd HH24:mi:ss:ff')";
+		String dt = StringUtils.isBlank(value) ? "0001-01-01 00:00:00:000" : value;
+		return "to_timestamp('" + dt + "','yyyy-MM-dd HH24:mi:ss:ff')";
 	}
 }

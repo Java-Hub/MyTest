@@ -1,5 +1,6 @@
 package main.java.spark.structuredstreaming.jdbc;
 
+import org.apache.spark.sql.execution.datasources.jdbc.JDBCOptions;
 import scala.collection.immutable.Map;
 
 import java.io.Serializable;
@@ -53,6 +54,10 @@ public class JdbcOptions implements Serializable {
 
 	public String getTimestamp(){
 		return map.apply(TIMESTAMP);
+	}
+
+	public JDBCOptions asJDBCOptions(){
+		return new JDBCOptions(getUrl(), getTable(), map);
 	}
 
 }

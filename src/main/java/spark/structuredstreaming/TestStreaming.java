@@ -22,9 +22,9 @@ public class TestStreaming {
 		SparkSession spark = SparkSession.builder().master("local").appName("TestStreaming").getOrCreate();
 
 		StructType schema = new StructType(new StructField[]{
-				new StructField("name_", DataTypes.StringType, true, Metadata.empty()),
-				new StructField("age_", DataTypes.createDecimalType(), true, Metadata.empty()),
-				new StructField("timestamp_", DataTypes.TimestampType,true, Metadata.empty())
+				new StructField("NAME_", DataTypes.StringType, true, Metadata.empty()),
+				new StructField("AGE_", DataTypes.createDecimalType(), true, Metadata.empty()),
+				new StructField("TIMESTAMP_", DataTypes.TimestampType,true, Metadata.empty())
 		});
 
 		Dataset<Row> df = spark.readStream()
@@ -34,13 +34,14 @@ public class TestStreaming {
 				.option(JdbcOptions.TABLE, "test")
 				.option(JdbcOptions.USER, "root")
 				.option(JdbcOptions.PWD, "root")
-				.option(JdbcOptions.TIMESTAMP, "timestamp_")
+				.option(JdbcOptions.TIMESTAMP, "TIMESTAMP_")
 				.schema(schema)
 				.load();
 
 		df.writeStream()
 				.format("console")
 				.option("numRows", 100000)
+				.option("checkpointLocation", "file:///E:\\testcheckpoint")
 				.outputMode(OutputMode.Update())
 				.start()
 				.awaitTermination();
