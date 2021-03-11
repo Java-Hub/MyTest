@@ -54,4 +54,5 @@ public class JdbcDataSourceProvider implements DataSourceRegister, StreamSourceP
 			throw new RuntimeException("未设置时间戳字段：" + JdbcOptions.TIMESTAMP);
 		}
 	}
+
 }

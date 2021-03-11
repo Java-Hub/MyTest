@@ -1,6 +1,5 @@
 package main.java.spark.structuredstreaming.jdbc;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.Partition;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -45,7 +44,9 @@ public class JdbcDataSource implements Source {
 
 	public static final String NAME = "jdbc";
 
-	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS");
+	int i=0;
+
+	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSSSSS");
 
 	public JdbcDataSource(SparkSession sc, JdbcOptions jdbcOptions, StructType schema) {
 		this.sc = sc;
@@ -90,8 +91,8 @@ public class JdbcDataSource implements Source {
 
 	@Override
 	public Dataset<Row> getBatch(Option<Offset> start, Offset end) {
-		String startTime = start.isEmpty() ? "" : ((JdbcStreamSourceOffset) start.get()).getDateTime();
-		String endTime = ((JdbcStreamSourceOffset) end).getDateTime();
+		String startTime = JdbcStreamSourceOffset.apply(start);
+		String endTime = JdbcStreamSourceOffset.apply(end);
 		String offsetField = jdbc.getTimestamp();
 		Filter[] filters = new Filter[0];
 		JDBCOptions options = new JDBCOptions(jdbc.getUrl(), jdbc.getTable(), new HashMap<>());
@@ -120,7 +121,6 @@ public class JdbcDataSource implements Source {
 	}
 
 	private String funcToDateTime(String value) {
-		String dt = StringUtils.isBlank(value) ? "0001-01-01 00:00:00:000" : value;
-		return "to_timestamp('" + dt + "','yyyy-MM-dd HH24:mi:ss:ff')";
+		return "to_timestamp('" + value + "','yyyy-MM-dd HH24:mi:ss:ff')";
 	}
 }
