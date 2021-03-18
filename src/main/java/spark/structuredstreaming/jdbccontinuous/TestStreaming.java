@@ -23,7 +23,8 @@ public class TestStreaming {
 		SparkSession spark = SparkSession.builder().master("local[*]").appName("TestStreaming").getOrCreate();
 
 		StructType schema = new StructType(
-				new StructField[] { new StructField("NAME_", DataTypes.StringType, true, Metadata.empty()), new StructField("AGE_", DataTypes.createDecimalType(), true, Metadata.empty()),
+				new StructField[] { new StructField("NAME_", DataTypes.StringType, true, Metadata.empty()),
+						new StructField("AGE_", DataTypes.createDecimalType(), true, Metadata.empty()),
 						new StructField("TIMESTAMP_", DataTypes.TimestampType, true, Metadata.empty()) });
 
 		Dataset<Row> df = spark.readStream()
@@ -43,7 +44,7 @@ public class TestStreaming {
 						.option("truncate", 100)
 						.option("checkpointLocation", "file:///E:\\testcheckpoint")
 						.outputMode(OutputMode.Update())
-						.trigger(Trigger.Continuous(0))
+						.trigger(Trigger.Continuous(10))
 						.start()
 						.awaitTermination();
 	}

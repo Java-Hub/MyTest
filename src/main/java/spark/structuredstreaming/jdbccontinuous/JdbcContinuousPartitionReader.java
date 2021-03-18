@@ -83,8 +83,8 @@ public class JdbcContinuousPartitionReader implements ContinuousInputPartitionRe
 					while (rs.next()) {
 						Object[] data = FieldUtils.getWithType(rs, schema);
 						GenericRowWithSchema row = new GenericRowWithSchema(data, schema);
-						queue.put(row);
 						currentOffset = new JdbcPartitionOffset(rs.getTimestamp(timestamp));
+						queue.put(row);
 					}
 				} catch (Exception e) {
 					throw new RuntimeException(e);
